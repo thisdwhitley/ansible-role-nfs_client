@@ -21,7 +21,7 @@
     fstype: "nfs"
     opts: _netdev
     state: mounted
-  with_subelements:
+  with_items:
     - "{{ mounts }}"
   when: mounts is defined
 
