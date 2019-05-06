@@ -1,0 +1,37 @@
+---
+# if specified in the role invocation, configure the mounts and potentially the
+# links in the home directory
+
+# TODO: I should test that the server is actually accessible
+
+- name: config| ensure the local directories exist
+  become: true
+  file:
+    path: "{{ item.dest }}"
+    state: directory
+  with_items:
+    - "{{ mounts }}"
+  when: mounts is defined
+
+- name: config| mount the NFS shares via fstab
+  become: true
+  mount:
+    path: "{{ item.dest }}"
+    src: "{{ item.src }}"
+    fstype: "nfs"
+    opts: _netdev
+    state: mounted
+  with_subelements:
+    - "{{ mounts }}"
+  when: mounts is defined
+
+- name: config| create soft links for users
+  become: true
+  become_user: "{{ item[0] }}"
+  file:
+    path: "~/{{ item[1].dest | basename }}"
+    src: "{{ item[1].dest }}"
+    state: link
+  loop: "{{ lookup('nested', home_link, mounts) }}"
+  when:
+    - home_link is defined

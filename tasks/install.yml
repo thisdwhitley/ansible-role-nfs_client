@@ -1,0 +1,27 @@
+---
+# the packages required for nfs_client will be installed from their respective
+# OS repositories.
+
+- name: install|deb| install packages via apt
+  become: true
+  apt:
+    name: ['nfs-common', 'rpcbind']
+    # update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: install|rpm| install packages via package
+  become: true
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - nfs-utils
+    - rpcbind
+  when: ansible_os_family == "RedHat"
+
+- name: install| ensure rpcbind is started and enabled
+  become: true
+  service:
+    name: "rpcbind"
+    state: started
+    enabled: true
